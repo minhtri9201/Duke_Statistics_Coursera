@@ -1,0 +1,119 @@
+---
+title: "Exploring the BRFSS data"
+author: "Tri Truong"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded
+your data file will be called `brfss2013`. Delete this note when before you submit 
+your work. 
+
+```{r load-data}
+load("4tiY2fqCQa-YmNn6gnGvzQ_1e7320c30a6f4b27894a54e2de50a805_brfss2013.RData")
+```
+
+
+
+* * *
+
+## Part 1: Data
+
+<div id="instructions">
+This dataset, BRFSS, objective is to collect uniform, state-specific data on preventive health practices and risk behaviors that are linked to chronic diseases, injuries, and preventable infectious diseases that affect the adult population. As the survey results, factors include tobacco use, HIV/AIDS knowledge and prevention, exercise, immunization, health status, healthy days — health-related quality of life, health care access, inadequate sleep, hypertension awareness, cholesterol awareness, chronic health conditions, alcohol consumption, fruits and vegetables consumption, arthritis burden, and seatbelt use.
+</div>
+
+* * *
+
+## Part 2: Research questions
+
+**Research quesion 1:**
+As a first question, we might be interested in the relationship between states, the residents' health, and whether or not that person has health care coverage. Here, we look at the state of North Carolina. Specifically, we want to understand how people from North Carolina have accessed to health care, and whether or not their conditions (health status) affect their eligibility to receive health coverage. To achieve this, we familiarise ourselves with the variables `X_state`, `genhlth`, and `hlthplan1`.
+
+**Research quesion 2:**
+As a second question, we are interested in looking at the poor-health-status resident demographics. In particular, we are interested in their medicare coverage and their employment statusl. Here, we are looking at the residents of a different state, California. We want to see if there is any relationship between these variables and test if these variables are independent or not. To achieve this, we amiliarise ourselves with the variables `employ1` and `medicare`.
+
+**Research quesion 3:**
+Based on the information obtained in the research question 2, we are interested in examining the larger Medicare system of the US. Here, we are interested in the unable-to-work demographics, whether or not they receive Medicare, and their health status. These investigations will partially explain the US Medicare system and how it affects its residents. To achieve this, we amiliarise ourselves with the variables `genhlth` and `medicare`.
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button (green button with orange arrow) above. Make sure that your code is visible
+in the project you submit. Delete this note when before you submit your work.
+
+**Research quesion 1:**
+
+```{r plot_health_status_vs_health_care}
+brfss2013 %>%
+  select(hlthpln1, genhlth, X_state) %>%
+  na.omit() %>%
+  filter(X_state == "North Carolina") %>% 
+  count(genhlth, hlthpln1) %>%
+  ggplot(mapping = aes(genhlth, n, fill = hlthpln1)) +
+    geom_bar(stat = "identity", position = 'dodge', colour="black") +
+    labs(title = "Relationship between Health Care Coverage and Residents' Health Status",
+         x = "Health Status",
+         y = "Number of Coverage",
+         fill = "Health Care Coverage Status") +
+    theme_bw()
+```
+
+Observing the bar plot, we see that the state of North Carolina, overall, has done well in obtaining coverage for its residents. Although the number of people who do not have health care coverage are high , most of them are in good to excellent health. This number is especially small when compared to the number of people who do have health care coverage. It is worthy to note that there are still people who in poor health and do not have health care coverage. 
+
+
+**Research quesion 2:**
+
+```{r plot_employment_status_vs_medicare, fig.height=5, fig.width= 7}
+brfss2013 %>%
+  filter(genhlth == "Poor",
+         X_state == "California") %>%
+  select(medicare, employ1) %>%
+  na.omit() %>%
+  count(employ1, medicare) %>%
+  ggplot(mapping = aes(employ1, n, fill = medicare)) +
+    geom_bar(stat = "identity", position = 'dodge', colour="black") +
+    coord_flip() +
+    labs(title = "Relationship between Employment Status and Medicare Coverage",
+         x = "Employment Status",
+         y = "Number of Coverage",
+         fill = "Medicare Coverage Status") +
+    theme_bw()
+```
+
+Here, we see that people who are both in poor health status and are unable to work or retired are the people who would likely receive Medicare. However, the number of people who are unable to work and do not receive Medicare is almost as large as the number of people who do receive Medicare. For the remaining categories, which include students or people who are out of work, the number of people who receive Medicare is extremely low. The state of California still need to improve its Medicare system. These statistics of people in the state of California reflect the US Health Care system and the US government philosophy. Ultimately, people have to prove that they are uneligible to take care of themselves in order to receive Medicare. This contrasts the individualism concept in the US. 
+
+**Research quesion 3:**
+
+```{r}
+brfss2013 %>% 
+  filter(employ1 == "Unable to work") %>%
+  select(medicare, genhlth) %>%
+  na.omit() %>%
+  count(genhlth, medicare) %>%
+  ggplot(mapping = aes(genhlth, n, fill = medicare)) +
+    geom_bar(stat = "identity", position = 'dodge', colour="black") +
+    labs(title = "Relationship between Health Status and Medicare Coverage",
+         x = "Health Status",
+         y = "Number of Coverage",
+         fill = "Medicare Coverage Status") +
+    theme_bw()
+```
+
+Apart of the state of California, the number of people, who are unable to work, receive Medicare is high. However, there are still a large portion of people who did not receive Medicare, especially for the poor demographics. 
