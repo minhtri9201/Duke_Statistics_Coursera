@@ -1,0 +1,174 @@
+---
+title: "Statistical inference with the GSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded
+your data file will be called `gss`. Delete this note when before you submit 
+your work. 
+
+```{r load-data}
+load("gss.Rdata")
+```
+
+
+
+* * *
+
+## Part 1: Data
+
+**Data:** The data was collected in rural and urban areas in the US, in the form
+of a survey/questionare From 1972-2018. There are a total of 64,814 completed 
+interviews.  Each survey was an independently drawn sample of English-speaking 
+persons 18 years of age or over, living in non-institutional arrangements within 
+the United States. Spanish-speakers were also added to the target population. 
+Block quota sampling was used and full probability sampling was employed. The 
+data from the interviews were processed according to standard NORC procedures.
+
+**Case:** Here in the data, the cases in the people residing in the US who are 
+interviewed in their household.
+
+**Variables:** Two variables `race` and `partyid`. `race` represents the races 
+of respondent. Data type of `race` is numeric. `partyid` represents political 
+party affiliation. Data type of `partyid` is also numeric. 
+
+**Type of study:** GSS is a questionare/survey done by interviewing Americans 
+that were random sampled from the US adult population. So, it is an 
+observational study. 
+
+**Scope of inference - generalizability:** The adult people of the US.
+
+**Scope of inference - causality:** Since this is an observational study, there
+is no causality.
+
+* * *
+
+## Part 2: Research question
+
+**Research Question:** Does the data suggest that there is an association 
+between the variable `race` and `partyid`? This question explores is there a 
+relationship between race and political party affiliation. This research 
+question will shed light into the racial support that each party has. 
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button (green button with orange arrow) above. Make sure that your code is visible
+in the project you submit. Delete this note when before you submit your work.
+
+
+```{r view_data_race}
+summary(gss$race)
+```
+The data showcases 46350 white persons and 7926 black persons. 
+
+```{r view_data_partyid}
+summary(gss$partyid)
+```
+There are 327 NA in the data. 
+
+**Contingency Table:** Relationship between the 2 categorical variable
+```{r table_race_partyid}
+table(gss$partyid, gss$race)
+```
+
+**Contingency Table with Proportion:**  For categorical data, it is appropriate 
+to use percentage(proportions) instead of counts to see the relationship.
+```{r prop_table_race_partyid}
+race_partyid = table(gss$race,gss$partyid)
+
+partyid_race = table(gss$partyid,gss$race)
+
+prop.table(race_partyid)
+```
+
+**Visualization:** Using bar_plot and mosaic_plot can help understand the data
+better and understand the relationship between each category.
+```{r barplot_partyid}
+barplot(table(gss$partyid), beside=TRUE, xlab="Political Party Affiliation", ylab="Count", main="Bar Plot of Political Party Affiliation in the US")
+```
+
+```{r barplot_race_partyid}
+barplot(race_partyid, beside=TRUE, legend.text=TRUE, xlab="Political Party Affiliation", ylab="Racial Status", main="Bar plot of racial status and political party affiliation")
+```
+
+```{r mosaicplot_race_partyid}
+mosaicplot(partyid_race, shade = TRUE)
+```
+
+* * *
+
+## Part 4: Inference
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button (green button with orange arrow) above. Make sure that your code is visible
+in the project you submit. Delete this note when before you submit your work.
+
+**Hypothesis**
+$$H_0:$$ Race and Political Party Affiliation are independent. 
+$$H_1:$$ Race and Political Party Affiliation are dependent.
+We choose the 5% significance level.
+$$\alpha = 0.05$$
+
+**Conditions**
+Independence: Random sampling or Random assignment, If sampling without 
+replacement, n<10% of population, Each case only contributes to one cell in the 
+table Sample Size / Skew: Each particular scenario (i.e., cell) must have at 
+least 5 expected cases.
+
+**Inferential Method**
+We use statistical inference, as the inference conditions are met for hypothesis
+testing (Random sampling and large sample size). As the 2 variables are 
+categorical and one has more than 2 levels and we are testing for independence, 
+we will be using Chi-square Independence Test for which the conditions are met. 
+
+```{r}
+check_expected_count = chisq.test(partyid_race)
+check_expected_count$expected
+```
+Simulation: We check the expected value for each cell assuming that the null
+hypothesis is true. 
+
+**Perform Inference**
+For test statistic, Chi.square independence test statistic is calculated to 
+decide on either to reject the null hypothesis or fail to reject the null 
+hypothesis. 
+```{r}
+chisq.test(partyid_race)
+```
+
+Since p_value < 2.2e-16, which is extremely small and smaller than 0.05, we reject
+the null hypothesis. Since the null hypothesis is rejected, it implies that 
+there is a dependence/association between race and party affiliation. 
+
+**Different Methods**
+Simulation: 
+```{r}
+chisq.test(partyid_race, simulate.p.value=TRUE, B=10000)$p.value
+```
+The p_value is extremely small and is smaller than the significance level. 
+Therefore, we still have enough evidence to reject the null hypothesis.
+
+* * * *
+
+## Part 5: Conclusion
+Summary: As per hypothesis test results, the null hypothesis was rejected. 
+Therefore, there is a dependency or association between `race` and `partyid`. 
